@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Care Buddy</title>
+    <title>Care Buddy Pro</title>
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -12,29 +12,69 @@
 <body>
     <div id="root"></div>
     <script type="text/babel">
-        // Ye aapka App.tsx wala code ab yahan hai
         const { useState } = React;
 
         function App() {
+            const [medicines, setMedicines] = useState([]);
+            const [input, setInput] = useState("");
+
+            const addMedicine = () => {
+                if (input.trim() !== "") {
+                    setMedicines([...medicines, { id: Date.now(), name: input, taken: false }]);
+                    setInput("");
+                }
+            };
+
+            const toggleTaken = (id) => {
+                setMedicines(medicines.map(m => m.id === id ? { ...m, taken: !m.taken } : m));
+            };
+
+            const deleteMed = (id) => {
+                setMedicines(medicines.filter(m => m.id !== id));
+            };
+
+            const progress = medicines.length > 0 
+                ? Math.round((medicines.filter(m => m.taken).length / medicines.length) * 100) 
+                : 0;
+
             return (
-                <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4 font-sans">
+                <div className="min-h-screen bg-gray-50 flex flex-col items-center p-4">
                     <header className="w-full max-w-md bg-blue-600 text-white p-6 rounded-2xl shadow-lg mb-6 text-center">
-                        <h1 className="text-3xl font-bold">Care Buddy</h1>
-                        <p className="opacity-90">Aapka Swasthya, Humari Zimmedari</p>
+                        <h1 className="text-2xl font-bold">Care Buddy</h1>
+                        <p className="opacity-90">Ab ye kaam karega! 🚀</p>
                     </header>
                     
-                    <main className="w-full max-w-md bg-white p-6 rounded-2xl shadow-md border border-gray-200">
+                    <main className="w-full max-w-md bg-white p-6 rounded-2xl shadow-md">
                         <div className="mb-6">
-                            <h2 className="text-lg font-semibold text-gray-800 mb-2">Daily Goal</h2>
-                            <div className="w-full bg-gray-200 rounded-full h-4">
-                                <div className="bg-green-500 h-4 rounded-full w-[75%]"></div>
+                            <h2 className="text-lg font-semibold text-gray-800">Daily Progress</h2>
+                            <div className="w-full bg-gray-200 rounded-full h-4 mt-2">
+                                <div className="bg-green-500 h-4 rounded-full transition-all duration-500" style={{width: `${progress}%`}}></div>
                             </div>
-                            <p className="text-sm text-gray-500 mt-2">75% Medicines Taken</p>
+                            <p className="text-sm text-gray-500 mt-2">{progress}% Medicines Taken</p>
                         </div>
 
-                        <button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-4 rounded-xl shadow-md active:scale-95 transition-all">
-                            + Add New Medicine
-                        </button>
+                        <div className="flex gap-2 mb-6">
+                            <input 
+                                type="text" 
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                placeholder="Medicine ka naam likho..." 
+                                className="flex-1 border p-3 rounded-xl focus:outline-blue-500"
+                            />
+                            <button onClick={addMedicine} className="bg-blue-600 text-white px-4 rounded-xl font-bold">Add</button>
+                        </div>
+
+                        <div className="space-y-3">
+                            {medicines.map(med => (
+                                <div key={med.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border">
+                                    <div className="flex items-center gap-3">
+                                        <input type="checkbox" checked={med.taken} onChange={() => toggleTaken(med.id)} className="h-5 w-5" />
+                                        <span className={med.taken ? "line-through text-gray-400" : "font-medium"}>{med.name}</span>
+                                    </div>
+                                    <button onClick={() => deleteMed(med.id)} className="text-red-500 text-sm">Delete</button>
+                                </div>
+                            ))}
+                        </div>
                     </main>
                 </div>
             );
