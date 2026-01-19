@@ -1,0 +1,52 @@
+// App.tsx - Care Buddy Medicine Reminder
+import React, { useState } from 'react';
+
+const App = () => {
+  const [meds, setMeds] = useState([]);
+  const [goal, setGoal] = useState(0);
+
+  // Function to add medicine
+  const addMedication = (name, time) => {
+    const newMed = { id: Date.now(), name, time, taken: false };
+    setMeds([...meds, newMed]);
+  };
+
+  return (
+    <div className="app-container" style={{ padding: '20px', fontFamily: 'sans-serif' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h1>Care Buddy</h1>
+        <button onClick={() => addMedication("New Med", "10:00 AM")} style={{ borderRadius: '50%', width: '40px', height: '40px', backgroundColor: '#007bff', color: 'white', border: 'none', fontSize: '24px' }}>+</button>
+      </header>
+
+      <div className="goal-card" style={{ backgroundColor: '#4a6cf7', color: 'white', padding: '20px', borderRadius: '15px', marginTop: '20px' }}>
+        <h2>Today's Goal</h2>
+        <p>You've taken {meds.filter(m => m.taken).length} of {meds.length} doses</p>
+        <div style={{ background: '#eee', borderRadius: '10px', height: '10px' }}>
+          <div style={{ background: '#fff', width: `${meds.length > 0 ? (meds.filter(m => m.taken).length / meds.length) * 100 : 0}%`, height: '100%', borderRadius: '10px' }}></div>
+        </div>
+      </div>
+
+      <div className="schedule" style={{ marginTop: '30px' }}>
+        <h3>Daily Schedule</h3>
+        {meds.length === 0 ? (
+          <p style={{ textAlign: 'center', color: '#888' }}>No medications found. Add your first one now!</p>
+        ) : (
+          meds.map(med => (
+            <div key={med.id} style={{ border: '1px solid #ddd', padding: '15px', borderRadius: '10px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between' }}>
+              <div>
+                <strong>{med.name}</strong>
+                <p style={{ margin: '5px 0', color: '#666' }}>{med.time}</p>
+              </div>
+              <input type="checkbox" onChange={() => {
+                const updated = meds.map(m => m.id === med.id ? {...m, taken: !m.taken} : m);
+                setMeds(updated);
+              }} />
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default App;
