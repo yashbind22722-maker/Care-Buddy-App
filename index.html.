@@ -1,17 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Care Buddy</title>
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-  </head>
-  <body>
+</head>
+<body>
     <div id="root"></div>
-    <script type="text/babel" src="App.tsx"></script>
-  </body>
-</html>
+    <script type="text/babel">
+        // Ye aapka App.tsx wala code ab yahan hai
+        const { useState } = React;
 
+        function App() {
+            return (
+                <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4 font-sans">
+                    <header className="w-full max-w-md bg-blue-600 text-white p-6 rounded-2xl shadow-lg mb-6 text-center">
+                        <h1 className="text-3xl font-bold">Care Buddy</h1>
+                        <p className="opacity-90">Aapka Swasthya, Humari Zimmedari</p>
+                    </header>
+                    
+                    <main className="w-full max-w-md bg-white p-6 rounded-2xl shadow-md border border-gray-200">
+                        <div className="mb-6">
+                            <h2 className="text-lg font-semibold text-gray-800 mb-2">Daily Goal</h2>
+                            <div className="w-full bg-gray-200 rounded-full h-4">
+                                <div className="bg-green-500 h-4 rounded-full w-[75%]"></div>
+                            </div>
+                            <p className="text-sm text-gray-500 mt-2">75% Medicines Taken</p>
+                        </div>
+
+                        <button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-4 rounded-xl shadow-md active:scale-95 transition-all">
+                            + Add New Medicine
+                        </button>
+                    </main>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
