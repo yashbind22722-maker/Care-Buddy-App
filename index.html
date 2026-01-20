@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Care Buddy Pro + Timer</title>
+    <title>Care Buddy Pro - Sound & Timer</title>
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -12,10 +12,9 @@
 <body class="bg-gray-100">
     <div id="root"></div>
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useRef } = React;
 
         function App() {
-            // Memories: Local Storage se data uthana
             const [medicines, setMedicines] = useState(() => {
                 const saved = localStorage.getItem("meds");
                 return saved ? JSON.parse(saved) : [];
@@ -23,95 +22,18 @@
             const [input, setInput] = useState("");
             const [time, setTime] = useState("");
 
-            // Data save karna jab bhi list badle
             useEffect(() => {
                 localStorage.setItem("meds", JSON.stringify(medicines));
             }, [medicines]);
 
-            // Notification Permission
             useEffect(() => {
-                if ("Notification" in window) {
+                if ("Notification" in window && Notification.permission !== "granted") {
                     Notification.requestPermission();
                 }
             }, []);
 
-            // Timer Logic: Har minute check karega
-            useEffect(() => {
-                const interval = setInterval(() => {
-                    const now = new Date();
-                    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-                    
-                    medicines.forEach(med => {
-                        if (med.time === currentTime && !med.notified) {
-                            new Notification("Medicine Time!", { body: `Bhai, ${med.name} khane ka waqt ho gaya hai!` });
-                            // Ek hi baar notify karne ke liye
-                            setMedicines(prev => prev.map(m => m.id === med.id ? {...m, notified: true} : m));
-                        }
-                    });
-                }, 1000 * 60);
-                return () => clearInterval(interval);
-            }, [medicines]);
-
-            const addMedicine = () => {
-                if (input.trim() !== "" && time !== "") {
-                    setMedicines([...medicines, { id: Date.now(), name: input, time: time, taken: false, notified: false }]);
-                    setInput("");
-                    setTime("");
-                } else {
-                    alert("Naam aur Time dono bhariye bhai!");
-                }
-            };
-
-            const deleteMed = (id) => setMedicines(medicines.filter(m => m.id !== id));
-            const toggleTaken = (id) => setMedicines(medicines.map(m => m.id === id ? {...m, taken: !m.taken} : m));
-
-            const progress = medicines.length > 0 ? Math.round((medicines.filter(m => m.taken).length / medicines.length) * 100) : 0;
-
-            return (
-                <div className="flex flex-col items-center p-4 min-h-screen">
-                    <header className="w-full max-w-md bg-blue-600 text-white p-6 rounded-2xl shadow-lg mb-6 text-center">
-                        <h1 className="text-2xl font-bold">Care Buddy Pro</h1>
-                        <p className="text-sm opacity-90">Memories + Timer + Notifications</p>
-                    </header>
-
-                    <main className="w-full max-w-md bg-white p-6 rounded-3xl shadow-md">
-                        <div className="mb-6 bg-blue-50 p-4 rounded-2xl">
-                            <h2 className="font-bold text-gray-700">Aaj ka Target: {progress}%</h2>
-                            <div className="w-full bg-gray-200 h-3 rounded-full mt-2">
-                                <div className="bg-green-500 h-3 rounded-full transition-all" style={{width: `${progress}%`}}></div>
-                            </div>
-                        </div>
-
-                        <div className="space-y-3 mb-6">
-                            <input type="text" value={input} onChange={(e)=>setInput(e.target.value)} placeholder="Medicine ka naam..." className="w-full border p-3 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none" />
-                            <div className="flex gap-2">
-                                <input type="time" value={time} onChange={(e)=>setTime(e.target.value)} className="flex-1 border p-3 rounded-xl shadow-sm outline-none" />
-                                <button onClick={addMedicine} className="bg-blue-600 text-white px-6 rounded-xl font-bold hover:bg-blue-700">Add</button>
-                            </div>
-                        </div>
-
-                        <div className="space-y-3">
-                            {medicines.map(med => (
-                                <div key={med.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                                    <div className="flex items-center gap-3">
-                                        <input type="checkbox" checked={med.taken} onChange={() => toggleTaken(med.id)} className="w-5 h-5 rounded" />
-                                        <div>
-                                            <p className={`font-bold ${med.taken ? 'line-through text-gray-400' : 'text-gray-800'}`}>{med.name}</p>
-                                            <p className="text-xs text-blue-500 font-medium">⏰ {med.time}</p>
-                                        </div>
-                                    </div>
-                                    <button onClick={() => deleteMed(med.id)} className="text-red-400 text-sm hover:text-red-600">Delete</button>
-                                </div>
-                            ))}
-                        </div>
-                    </main>
-                </div>
-            );
-        }
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
-</body>
-    </html>
-    
+            // Sound bajane wala function
+            const playSound = () => {
+                const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+                audio.play().catch
+        
