@@ -1,16 +1,14 @@
-self.addEventListener('install', (e) => self.skipWaiting());
+self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
 
-// Background Alarm Check
-setInterval(() => {
-    // Ye browser ko jagaye rakhega thodi der
-}, 30000);
+// Ye background mein browser ko batata rahega ki app zinda hai
+self.addEventListener('periodicsync', (event) => {
+    if (event.tag === 'check-alarm') {
+        // Alarm logic here
+    }
+});
 
-self.addEventListener('push', (event) => {
-    const options = {
-        body: 'Dawai ka waqt ho gaya hai bhai!',
-        icon: 'https://cdn-icons-png.flaticon.com/512/822/822143.png',
-        vibrate: [200, 100, 200]
-    };
-    event.waitUntil(self.registration.showNotification('Care Buddy Alarm', options));
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    event.waitUntil(clients.openWindow('/'));
 });
