@@ -13,9 +13,8 @@
 <body class="bg-gray-100">
     <div id="root"></div>
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useRef } = React;
 
-        // Service Worker Register
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js').catch(err => console.log(err));
@@ -29,55 +28,31 @@
             });
             const [input, setInput] = useState("");
             const [time, setTime] = useState("");
+            const audioRef = useRef(new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3'));
 
             useEffect(() => {
                 localStorage.setItem("meds", JSON.stringify(medicines));
             }, [medicines]);
-
-            const playSound = () => {
-                const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-                audio.play().catch(e => console.log("Sound error: Click screen first"));
-            };
-
-            // Notification permission request
-            useEffect(() => {
-                if (Notification.permission !== "granted") {
-                    Notification.requestPermission();
-                }
-            }, []);
 
             useEffect(() => {
                 const interval = setInterval(() => {
                     const now = new Date();
                     const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
                     
-                    setMedicines(prevMeds => {
-                        let updated = false;
-                        const newMeds = prevMeds.map(med => {
-                            if (med.time === currentTime && !med.notified) {
-                                playSound();
-                                updated = true;
-                                
-                                // Background Notification
-                                if (Notification.permission === "granted") {
-                                    new Notification("Care Buddy Alarm!", { 
-                                        body: `Bhai, ${med.name} ka time ho gaya!`,
-                                        icon: 'https://cdn-icons-png.flaticon.com/512/822/822143.png'
-                                    });
-                                } else {
-                                    alert(`🚨 ALARM: ${med.name} ka waqt hai!`);
-                                }
-                                return { ...med, notified: true };
-                            }
-                            // Reset notified status if time has passed (for next day)
-                            if (med.time !== currentTime && med.notified) {
-                                updated = true;
-                                return { ...med, notified: false };
-                            }
-                            return med;
-                        });
-                        return updated ? newMeds : prevMeds;
+                    let hasChanged = false;
+                    const updatedMeds = medicines.map(med => {
+                        if (med.time === currentTime && !med.notified) {
+                            audioRef.current.play().catch(e => console.log("Interaction required"));
+                            alert(`🚨 ALARM: ${med.name} khane ka waqt hai!`);
+                            hasChanged = true;
+                            return { ...med, notified: true };
+                        }
+                        return med;
                     });
+
+                    if (hasChanged) {
+                        setMedicines(updatedMeds);
+                    }
                 }, 1000);
                 return () => clearInterval(interval);
             }, [medicines]);
@@ -97,42 +72,34 @@
                 <div className="flex flex-col items-center p-4 min-h-screen">
                     <header className="w-full max-w-md bg-blue-600 text-white p-6 rounded-2xl shadow-lg mb-6 text-center">
                         <h1 className="text-2xl font-bold">Care Buddy Pro</h1>
-                        <p className="text-sm opacity-90">One-Time Alarm Active 🚀</p>
+                        <p className="text-sm opacity-90">Safe & Stable Version 🚀</p>
                     </header>
-
-                    <main className="w-full max-w-md bg-white p-6 rounded-3xl shadow-xl border">
-                        <div className="mb-6 bg-blue-50 p-4 rounded-2xl text-center">
-                            <h2 className="font-bold text-blue-800">Target: {progress}%</h2>
-                            <div className="w-full bg-gray-200 h-3 rounded-full mt-2 overflow-hidden">
-                                <div className="bg-green-500 h-full transition-all" style={{width: `${progress}%`}}></div>
-                            </div>
+                    <main className="w-full max-w-md bg-white p-6 rounded-3xl shadow-xl">
+                        <div className="mb-6 bg-blue-50 p-4 rounded-2xl text-center font-bold text-blue-800">
+                            Target: {progress}%
                         </div>
-
                         <div className="space-y-3 mb-6">
-                            <input type="text" value={input} onChange={(e)=>setInput(e.target.value)} placeholder="Medicine ka naam..." className="w-full border p-4 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" />
+                            <input type="text" value={input} onChange={(e)=>setInput(e.target.value)} placeholder="Medicine name..." className="w-full border p-4 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500" />
                             <div className="flex gap-2">
-                                <input type="time" value={time} onChange={(e)=>setTime(e.target.value)} className="flex-1 border p-4 rounded-2xl outline-none shadow-sm" />
-                                <button onClick={addMedicine} className="bg-blue-600 text-white px-8 rounded-2xl font-bold active:scale-95 transition-all shadow-md">Add</button>
+                                <input type="time" value={time} onChange={(e)=>setTime(e.target.value)} className="flex-1 border p-4 rounded-2xl outline-none" />
+                                <button onClick={addMedicine} className="bg-blue-600 text-white px-8 rounded-2xl font-bold">Add</button>
                             </div>
                         </div>
-
                         <div className="space-y-3">
-                            {medicines.length === 0 && <p className="text-center text-gray-400">Koi medicine nahi hai bhai.</p>}
                             {medicines.map(med => (
-                                <div key={med.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border hover:border-blue-200 transition-all shadow-sm">
+                                <div key={med.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border">
                                     <div className="flex items-center gap-3">
-                                        <input type="checkbox" checked={med.taken} onChange={() => toggleTaken(med.id)} className="w-5 h-5 accent-blue-600" />
+                                        <input type="checkbox" checked={med.taken} onChange={() => toggleTaken(med.id)} className="w-5 h-5" />
                                         <div>
                                             <p className={`font-bold ${med.taken ? 'line-through text-gray-300' : 'text-gray-800'}`}>{med.name}</p>
-                                            <p className="text-xs text-blue-500 font-bold flex items-center gap-1">⏰ {med.time}</p>
+                                            <p className="text-xs text-blue-500 font-bold">⏰ {med.time}</p>
                                         </div>
                                     </div>
-                                    <button onClick={() => deleteMed(med.id)} className="text-red-400 font-semibold text-sm px-2">Delete</button>
+                                    <button onClick={() => deleteMed(med.id)} className="text-red-400 font-bold">Delete</button>
                                 </div>
                             ))}
                         </div>
                     </main>
-                    <p className="mt-8 text-gray-400 text-[10px] text-center max-w-xs">Bhai, agar background mein notification chahiye toh app ko home button se minimize karein, Recent Apps se swipe karke band na karein.</p>
                 </div>
             );
         }
